@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  django-app:
+    image: ty990520/clrobur-django-test-app:0.0.1
+    deploy:
+      replicas: 2 # web 서비스의 인스턴스를 5개로 설정
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+  nginx:
+    image: ty990520/clrobur-custom-nginx:0.0.2
+    depends_on:
+      - django-app
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+
+networks:
+  app-network:
+    driver: overlay
